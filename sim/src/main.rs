@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use crate::effectors::forces::mouse_gravity::MouseGravity;
 use crate::effectors::Effector;
 use crate::entity::circle_entity::CircleEntity;
