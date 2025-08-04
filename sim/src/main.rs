@@ -22,10 +22,22 @@ pub mod effectors;
 mod entity;
 mod world;
 
+const BB_WIDTH: f32 = 15.0;
+
 #[macroquad::main("Physics Playground")]
 async fn main() {
     let mut world = World::new(screen_width(), screen_height());
     let mut mouse_grav = MouseGravity::new(0.1);
+
+    let bb1 = RectangleEntity::new_static(0.0, 0.0, BB_WIDTH, screen_height());
+    let bb2 = RectangleEntity::new_static(0.0, 0.0, screen_width(), BB_WIDTH);
+    let bb3 = RectangleEntity::new_static(0.0, screen_height() - BB_WIDTH, screen_width(), BB_WIDTH);
+    let bb4 = RectangleEntity::new_static(screen_width() - BB_WIDTH, 0.0, BB_WIDTH, screen_height());
+
+    world.add_entity(Rc::new(RefCell::new(bb1)));
+    world.add_entity(Rc::new(RefCell::new(bb2)));
+    world.add_entity(Rc::new(RefCell::new(bb3)));
+    world.add_entity(Rc::new(RefCell::new(bb4)));
 
     let mut i = 0;
     let mut fps = get_fps();

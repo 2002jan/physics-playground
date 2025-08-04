@@ -38,6 +38,25 @@ impl RectangleEntity {
             h,
         }
     }
+
+    pub fn new_static(x: f32, y: f32, w: f32, h: f32) -> Self{
+        Self {
+            position: Vec2{x,y},
+            force: Vec2::zeros(),
+            velocity: Vec2::zeros(),
+            mass: 2.0,
+            collider: Collider {
+                rel_pos: Vec2::zeros(),
+                bound_box: Rectangle(RectangleBB {
+                    width: w,
+                    height: h
+                })
+            },
+            entity_type: EntityType::Static,
+            w,
+            h,
+        }
+    }
 }
 
 impl Entity for RectangleEntity {
