@@ -39,22 +39,6 @@ impl Entity for CircleEntity {
         draw_circle(self.position.x, self.position.y, 10.0, GREEN)
     }
 
-    // fn update(&mut self, delta_time: f32) {
-    //     let d = (self.velocity * -1.0) * 0.01;
-    //     let f = d + self.force;
-    //
-    //     let a = f / self.mass;
-    //
-    //     self.position = self.position + self.velocity * delta_time + 0.5 * a * delta_time * delta_time;
-    //     self.velocity += a * delta_time;
-    //
-    //     self.force = Vec2::zeros();
-    //
-    //     // if self.position.y > 64.0 {
-    //     //     self.position.y = 64.0;
-    //     // }
-    // }
-
     fn get_position(&self) -> Vec2 {
         self.position.clone()
     }

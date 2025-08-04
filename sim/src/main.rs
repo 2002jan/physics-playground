@@ -29,6 +29,7 @@ async fn main() {
     let mut world = World::new(screen_width(), screen_height());
     let mut mouse_grav = MouseGravity::new(0.1);
 
+    // Adding world bounding boxes
     let bb1 = RectangleEntity::new_static(0.0, 0.0, BB_WIDTH, screen_height());
     let bb2 = RectangleEntity::new_static(0.0, 0.0, screen_width(), BB_WIDTH);
     let bb3 = RectangleEntity::new_static(0.0, screen_height() - BB_WIDTH, screen_width(), BB_WIDTH);
