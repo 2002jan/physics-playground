@@ -1,9 +1,9 @@
-use crate::component::Component;
 use crate::component::registry::ComponentRegistry;
 use crate::component::storage::{ComponentStorage, ComponentStorageAny};
 use crate::entity::Entity;
 use common::collections::sorted_vector::SortedVec;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
+use std::cell::{Ref, RefMut};
 use std::collections::HashMap;
 
 pub struct Archetype {
@@ -14,7 +14,7 @@ pub struct Archetype {
 }
 
 impl Archetype {
-    pub fn new(sig: &mut SortedVec<TypeId>, registry: &ComponentRegistry) -> Self {
+    pub fn new(sig: &SortedVec<TypeId>, registry: &ComponentRegistry) -> Self {
         let mut storages = HashMap::new();
 
         for t in &*sig {
@@ -33,7 +33,7 @@ impl Archetype {
         }
     }
 
-    pub fn get_component<T: Component>(&self, entity: Entity) -> Option<&T> {
+    pub fn get_component<T: 'static>(&self, entity: Entity) -> Option<Ref<'_, T>> {
         let type_id = TypeId::of::<T>();
 
         let storage = self
@@ -45,19 +45,19 @@ impl Archetype {
         storage.get(entity)
     }
 
-    pub fn get_component_mut<T: Component>(&mut self, entity: Entity) -> Option<&mut T> {
+    pub fn get_component_mut<T: 'static>(&self, entity: Entity) -> Option<RefMut<'_, T>> {
         let type_id = TypeId::of::<T>();
 
         let storage = self
             .storages
-            .get_mut(&type_id)?
-            .as_any_mut()
-            .downcast_mut::<ComponentStorage<T>>()?;
+            .get(&type_id)?
+            .as_any()
+            .downcast_ref::<ComponentStorage<T>>()?;
 
         storage.get_mut(entity)
     }
 
-    pub fn add_entity(&mut self, entity: Entity, components: Vec<impl Component>) {
+    pub fn add_entity(&mut self, entity: Entity, components: Vec<Box<dyn Any>>) {
         if components.len() != self.types.len() {
             panic!("Invalid components list")
         }
@@ -72,7 +72,7 @@ impl Archetype {
                 .get_mut(&type_id)
                 .expect("Invalid component type for this archetype");
 
-            storage.insert_any(entity, Box::new(c));
+            storage.insert_any(entity, c);
         }
     }
 
@@ -80,8 +80,22 @@ impl Archetype {
         self.entities.contains(&entity)
     }
 
-    pub fn has_component<T: Component>(&self) -> bool {
+    pub fn has_component<T: 'static>(&self) -> bool {
         self.types.contains(&TypeId::of::<T>())
+    }
+
+    pub fn remove_entity(&mut self, entity: Entity) -> Option<Vec<Box<dyn Any>>> {
+        let entity = self.entities.iter().position(|&e| e.eq(&entity))?;
+        let entity = self.entities.swap_remove(entity);
+
+        let mut components: Vec<Box<dyn Any>> = Vec::with_capacity(self.types.len() + 1);
+
+        for (_, s) in &mut self.storages {
+            let component = s.remove(entity).unwrap();
+            components.push(component);
+        }
+
+        Some(components)
     }
 }
 

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::any::TypeId;
-use crate::component::Component;
 use crate::component::storage::{ComponentStorage, ComponentStorageAny};
 
 pub struct ComponentRegistry {
@@ -14,7 +13,7 @@ impl ComponentRegistry {
         }
     }
 
-    pub fn register_component<T: Component>(&mut self) {
+    pub fn register_component<T: 'static>(&mut self) {
         self.storage_creation_function.insert(
             TypeId::of::<T>(),
             || {Box::new(ComponentStorage::<T>::new())}
@@ -26,7 +25,7 @@ impl ComponentRegistry {
         Some(create_fn())
     }
 
-    pub fn is_registered<T: Component>(&self) -> bool {
+    pub fn is_registered<T: 'static>(&self) -> bool {
         self.is_id_registered(&TypeId::of::<T>())
     }
 
@@ -64,12 +63,12 @@ mod tests {
         let type1 = TypeId::of::<Component1>();
         let type2 = TypeId::of::<Component2>();
 
-        let storage1 = component_registry.create_component_storage(&type1)
+        let _storage1 = component_registry.create_component_storage(&type1)
             .unwrap()
             .as_any()
             .downcast_ref::<ComponentStorage<Component1>>()
             .unwrap();
-        let storage2 = component_registry.create_component_storage(&type2)
+        let _storage2 = component_registry.create_component_storage(&type2)
             .unwrap()
             .as_any()
             .downcast_ref::<ComponentStorage<Component2>>()

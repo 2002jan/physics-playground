@@ -28,6 +28,27 @@ impl<T: Ord> SortedVec<T> {
     pub fn contains(&self, item: &T) -> bool {
         self.0.binary_search(item).is_ok()
     }
+
+    pub fn is_subset(&self, other: &Self) -> bool {
+        let mut self_iter = self.0.iter();
+        let mut other_iter = other.0.iter();
+        let mut self_current = self_iter.next();
+        let mut other_current = other_iter.next();
+
+        while let (Some(self_item), Some(other_item)) = (self_current, other_current) {
+            match self_item.cmp(other_item) {
+                Ordering::Less => return false,
+                Ordering::Equal => {
+                    self_current = self_iter.next();
+                    other_current = other_iter.next();
+                }
+                Ordering::Greater => {
+                    other_current = other_iter.next();
+                }
+            }
+        }
+        self_current.is_none()
+    }
 }
 
 impl<T: Ord + PartialEq> PartialEq for SortedVec<T> {
@@ -207,5 +228,23 @@ mod tests {
         assert_eq!(sv[0], 1);
         assert_eq!(sv[1], 2);
         assert_eq!(sv[2], 3);
+    }
+
+    #[test]
+    fn test_is_subset() {
+        let sv1: SortedVec<i32> = [1, 3].into_iter().collect();
+        let sv2: SortedVec<i32> = [1, 2, 3, 4].into_iter().collect();
+        let sv3: SortedVec<i32> = [1, 1, 3].into_iter().collect();
+        let sv4: SortedVec<i32> = [1, 1, 2, 3].into_iter().collect();
+        let sv5: SortedVec<i32> = [2, 5].into_iter().collect();
+        let empty: SortedVec<i32> = SortedVec::new();
+
+        assert!(sv1.is_subset(&sv2)); // [1, 3] ⊆ [1, 2, 3, 4]
+        assert!(sv3.is_subset(&sv4)); // [1, 1, 3] ⊆ [1, 1, 2, 3]
+        assert!(!sv3.is_subset(&sv2)); // [1, 1, 3] not ⊆ [1, 2, 3, 4] (duplicate 1)
+        assert!(!sv5.is_subset(&sv2)); // [2, 5] not ⊆ [1, 2, 3, 4] (5 not present)
+        assert!(empty.is_subset(&sv2)); // [] ⊆ [1, 2, 3, 4]
+        assert!(empty.is_subset(&empty)); // [] ⊆ []
+        assert!(sv2.is_subset(&sv2)); // [1, 2, 3, 4] ⊆ [1, 2, 3, 4]
     }
 }
